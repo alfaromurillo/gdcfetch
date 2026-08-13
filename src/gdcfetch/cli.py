@@ -64,6 +64,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--program", help="narrow to one program, e.g. TCGA"
     )
+    p.add_argument(
+        "--site",
+        help="substring match on primary site, e.g. 'lung'",
+    )
+    p.add_argument(
+        "--disease-type",
+        help="substring match on disease type, e.g. 'neoplasms'",
+    )
+    p.add_argument(
+        "--strategy",
+        help="substring match on experimental strategy, e.g. 'WGS'",
+    )
 
     p = sub.add_parser(
         "browse", help="see what's available for a project"
@@ -119,12 +131,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "projects":
         from .browse import list_projects
 
-        for hit in list_projects(program=args.program):
+        hits = list_projects(
+            program=args.program,
+            site=args.site,
+            disease_type=args.disease_type,
+            strategy=args.strategy,
+        )
+        for hit in hits:
             sites = "; ".join(hit.get("primary_site") or [])
             program = hit.get("program", {}).get("name", "")
             print(
                 f"{hit['project_id']}\t{program}\t{hit['name']}\t{sites}"
             )
+        print(f"# {len(hits)} projects", file=sys.stderr)
         return 0
 
     if args.command == "browse":

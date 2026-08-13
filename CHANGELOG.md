@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   across ~27 programs — TCGA, TARGET, CPTAC, ALCHEMIST, ...), not
   just data within one already-known project. `gdcfetch projects
   [--program NAME]` on the CLI.
+- `list_projects` gained `site`, `disease_type`, and `strategy`
+  filters — case-insensitive substring matches against
+  `primary_site`, `disease_type`, and the project's experimental
+  strategies, respectively (`primary_site` and `disease_type` are
+  distinct GDC fields: where vs. what). `gdcfetch projects --site
+  --disease-type --strategy` on the CLI.
 
 ## [0.1.0] - 2026-08-13
 

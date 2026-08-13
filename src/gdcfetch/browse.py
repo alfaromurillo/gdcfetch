@@ -21,24 +21,68 @@ _PROJECT_FIELDS = (
     "project_id",
     "name",
     "primary_site",
+    "disease_type",
     "program.name",
+    "summary.experimental_strategies.experimental_strategy",
 )
+
+
+def _matches(needle: str, haystack) -> bool:
+    """Case-insensitive substring match; `haystack` a str or list of str."""
+    needle = needle.lower()
+    values = haystack if isinstance(haystack, list) else [haystack]
+    return any(needle in str(v).lower() for v in values or [])
+
+
+def _project_strategies(hit: dict) -> list[str]:
+    return [
+        s["experimental_strategy"]
+        for s in hit.get("summary", {}).get(
+            "experimental_strategies", []
+        )
+    ]
 
 
 def list_projects(
     *,
     program: str | None = None,
+    site: str | None = None,
+    disease_type: str | None = None,
+    strategy: str | None = None,
     fields: tuple[str, ...] = _PROJECT_FIELDS,
     page_size: int = 100,
     session: requests.Session | None = None,
     timeout: int = 60,
 ) -> list[dict]:
-    """List every GDC project (93 as of 2026-08, across ~30 programs).
+    """List GDC projects, optionally filtered.
 
     GDC hosts more than TCGA -- TARGET, CPTAC, MMRF, ALCHEMIST, and
-    others are all in the same `/projects` index. Pass ``program``
-    (e.g. ``"TCGA"``) to narrow the listing to one; leave it unset to
-    see everything. Results are sorted by ``project_id``.
+    others are all in the same `/projects` index (93 total as of
+    2026-08, across ~27 programs). Results are sorted by
+    ``project_id``.
+
+    Parameters
+    ----------
+    program : str | None
+        Exact match, e.g. ``"TCGA"`` (server-side filter).
+    site : str | None
+        Case-insensitive substring match against ``primary_site``
+        (an anatomical site, e.g. ``"lung"`` matches "Bronchus and
+        lung"). Client-side -- GDC's query language doesn't do
+        substring matching, so this fetches the (small) full
+        candidate set and filters in Python.
+    disease_type : str | None
+        Case-insensitive substring match against ``disease_type``
+        (a histology/diagnosis category, e.g. ``"neoplasms"``
+        matches "Cystic, Mucinous and Serous Neoplasms"). This is a
+        genuinely different field from ``site`` -- a project's
+        primary site is *where* the disease is, its disease type is
+        *what* it is.
+    strategy : str | None
+        Case-insensitive substring match against the project's
+        available experimental strategies (e.g. ``"seq"`` matches
+        projects with any of RNA-Seq, WGS, WXS, ATAC-Seq, ...; use
+        an exact term like ``"WGS"`` to be precise).
     """
     session = session or requests.Session()
     filters = None
@@ -67,6 +111,24 @@ def list_projects(
         start += pagination["count"]
         if start >= pagination["total"] or pagination["count"] == 0:
             break
+
+    if site is not None:
+        hits = [
+            h for h in hits if _matches(site, h.get("primary_site"))
+        ]
+    if disease_type is not None:
+        hits = [
+            h
+            for h in hits
+            if _matches(disease_type, h.get("disease_type"))
+        ]
+    if strategy is not None:
+        hits = [
+            h
+            for h in hits
+            if _matches(strategy, _project_strategies(h))
+        ]
+
     hits.sort(key=lambda h: h["project_id"])
     return hits
 

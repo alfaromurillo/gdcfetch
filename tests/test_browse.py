@@ -114,14 +114,39 @@ TCGA_BRCA = {
     "project_id": "TCGA-BRCA",
     "name": "Breast Invasive Carcinoma",
     "primary_site": ["Breast"],
+    "disease_type": ["Ductal and Lobular Neoplasms"],
     "program": {"name": "TCGA"},
+    "summary": {
+        "experimental_strategies": [
+            {"experimental_strategy": "RNA-Seq"},
+            {"experimental_strategy": "ATAC-Seq"},
+        ]
+    },
+}
+TCGA_LUAD = {
+    "project_id": "TCGA-LUAD",
+    "name": "Lung Adenocarcinoma",
+    "primary_site": ["Bronchus and lung"],
+    "disease_type": ["Adenomas and Adenocarcinomas"],
+    "program": {"name": "TCGA"},
+    "summary": {
+        "experimental_strategies": [
+            {"experimental_strategy": "WGS"},
+        ]
+    },
 }
 ALCHEMIST = {
     "project_id": "ALCHEMIST-ALCH",
     "name": "Adjuvant Lung Cancer Enrichment Marker "
     "Identification and Sequencing Trial",
     "primary_site": ["Not Reported"],
+    "disease_type": ["Not Reported"],
     "program": {"name": "ALCHEMIST"},
+    "summary": {
+        "experimental_strategies": [
+            {"experimental_strategy": "WXS"},
+        ]
+    },
 }
 
 
@@ -177,3 +202,51 @@ def test_list_projects_filters_by_program():
         "op": "in",
         "content": {"field": "program.name", "value": ["TCGA"]},
     }
+
+
+def test_list_projects_filters_by_site():
+    session = _ProjectsSession([[TCGA_BRCA, TCGA_LUAD, ALCHEMIST]])
+    got = list_projects(site="lung", session=session)
+    assert [p["project_id"] for p in got] == ["TCGA-LUAD"]
+
+
+def test_list_projects_site_is_case_insensitive():
+    session = _ProjectsSession([[TCGA_LUAD]])
+    got = list_projects(site="LUNG", session=session)
+    assert len(got) == 1
+
+
+def test_list_projects_filters_by_disease_type():
+    session = _ProjectsSession([[TCGA_BRCA, TCGA_LUAD]])
+    got = list_projects(disease_type="neoplasms", session=session)
+    assert [p["project_id"] for p in got] == ["TCGA-BRCA"]
+
+
+def test_list_projects_disease_type_distinct_from_site():
+    # 'neoplasms' should not match on primary_site even though both
+    # projects are real cancers -- disease_type and primary_site are
+    # different fields
+    session = _ProjectsSession([[TCGA_LUAD]])
+    got = list_projects(disease_type="neoplasms", session=session)
+    assert got == []
+
+
+def test_list_projects_filters_by_strategy():
+    session = _ProjectsSession([[TCGA_BRCA, TCGA_LUAD, ALCHEMIST]])
+    got = list_projects(strategy="WGS", session=session)
+    assert [p["project_id"] for p in got] == ["TCGA-LUAD"]
+
+
+def test_list_projects_strategy_substring_match():
+    session = _ProjectsSession([[TCGA_BRCA, TCGA_LUAD]])
+    got = list_projects(strategy="seq", session=session)
+    # RNA-Seq and ATAC-Seq both contain "seq"; WGS does not
+    assert [p["project_id"] for p in got] == ["TCGA-BRCA"]
+
+
+def test_list_projects_filters_combine():
+    session = _ProjectsSession([[TCGA_BRCA, TCGA_LUAD, ALCHEMIST]])
+    got = list_projects(
+        program="TCGA", strategy="atac", session=session
+    )
+    assert [p["project_id"] for p in got] == ["TCGA-BRCA"]

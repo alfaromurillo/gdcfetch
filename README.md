@@ -175,12 +175,25 @@ know the project code:
 ```bash
 gdcfetch projects              # all 93
 gdcfetch projects --program TCGA   # just the 33 TCGA cancer types
+gdcfetch projects --site lung             # substring match on primary_site
+gdcfetch projects --disease-type neoplasms
+gdcfetch projects --strategy WGS --program TCGA
 ```
+
+`--site` and `--disease-type` look like they'd overlap but don't —
+`primary_site` is *where* the disease is (e.g. "Bronchus and lung"),
+`disease_type` is *what* it is (e.g. "Adenomas and Adenocarcinomas").
+`--strategy` matches against the project's available experimental
+strategies (RNA-Seq, WGS, ATAC-Seq, ...). All three are
+case-insensitive substring matches, applied client-side, and combine
+with each other and with `--program`.
 
 ```python
 from gdcfetch import list_projects
 
 tcga = list_projects(program="TCGA")
+lung = list_projects(site="lung")
+wgs_tcga = list_projects(program="TCGA", strategy="WGS")
 ```
 
 ## Exploring an unfamiliar project
@@ -215,7 +228,7 @@ for programmatic use.
 | Command | Purpose |
 |---|---|
 | `gdcfetch presets` | List named presets with descriptions |
-| `gdcfetch projects [--program NAME]` | List all GDC projects, optionally one program |
+| `gdcfetch projects [--program NAME] [--site TEXT] [--disease-type TEXT] [--strategy TEXT]` | List all GDC projects, optionally filtered |
 | `gdcfetch browse PROJECT [--data-category ...]` | List available data categories/types/strategies |
 | `gdcfetch search PROJECT [--preset NAME \| --data-type ...]` | List matching files |
 | `gdcfetch download PROJECT [...] --dest DIR` | Download matching files |

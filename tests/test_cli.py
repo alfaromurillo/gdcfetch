@@ -43,6 +43,26 @@ def test_projects_command_accepts_program_filter():
 def test_projects_command_program_optional():
     args = build_parser().parse_args(["projects"])
     assert args.program is None
+    assert args.site is None
+    assert args.disease_type is None
+    assert args.strategy is None
+
+
+def test_projects_command_accepts_site_disease_strategy():
+    args = build_parser().parse_args(
+        [
+            "projects",
+            "--site",
+            "lung",
+            "--disease-type",
+            "neoplasms",
+            "--strategy",
+            "WGS",
+        ]
+    )
+    assert args.site == "lung"
+    assert args.disease_type == "neoplasms"
+    assert args.strategy == "WGS"
 
 
 def test_download_accepts_token_file():
