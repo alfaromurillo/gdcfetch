@@ -8,7 +8,7 @@ downloader interchangeably. `write_sample_sheet` reproduces the
 uses, for interop with tools that expect that layout.
 """
 
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -41,7 +41,7 @@ def write_manifest(hits: list[dict], path: str | Path) -> Path:
         )
         for h in hits
     ]
-    lines = ["\t".join(("id", "filename", "md5", "size", "state"))]
+    lines = ["id\tfilename\tmd5\tsize\tstate"]
     lines += ["\t".join(r) for r in rows]
     path.write_text("\n".join(lines) + "\n")
     return path
@@ -92,10 +92,8 @@ def write_sample_sheet(
     if path is None:
         if directory is None:
             raise ValueError("Give either path or directory")
-        path = (
-            Path(directory)
-            / f"gdc_sample_sheet.{date.today().isoformat()}.tsv"
-        )
+        today = datetime.now(tz=timezone.utc).date().isoformat()
+        path = Path(directory) / f"gdc_sample_sheet.{today}.tsv"
     path = Path(path)
     frame = pd.DataFrame(
         [_sample_sheet_row(h) for h in hits],

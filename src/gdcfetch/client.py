@@ -213,13 +213,16 @@ def download_by_uuid(
     an interrupted download never leaves a truncated ``dest``.
     """
     dest = Path(dest)
-    if dest.exists() and not force:
-        if (
+    if (
+        dest.exists()
+        and not force
+        and (
             expected_size is None
             or dest.stat().st_size == expected_size
-        ):
-            logger.info("Already present, skipping: %s", dest.name)
-            return dest
+        )
+    ):
+        logger.info("Already present, skipping: %s", dest.name)
+        return dest
     dest.parent.mkdir(parents=True, exist_ok=True)
     session = session or requests.Session()
     part = dest.with_suffix(dest.suffix + ".part")
@@ -244,10 +247,9 @@ def download_by_uuid(
                     mode = "wb"  # server ignored the Range request
                 response.raise_for_status()
                 with open(part, mode) as fh:
-                    for chunk in response.iter_content(
-                        chunk_size=1 << 20
-                    ):
-                        fh.write(chunk)
+                    fh.writelines(
+                        response.iter_content(chunk_size=1 << 20)
+                    )
             if expected_size is not None and (
                 part.stat().st_size != expected_size
             ):
