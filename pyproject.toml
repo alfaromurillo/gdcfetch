@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gdcfetch"
+version = "0.1.0"
+authors = [
+    {name = "Jorge Alfaro-Murillo", email = "jorge.alfaro@ucr.ac.cr"},
+]
+description = "Search, browse, and download data from the NCI Genomic Data Commons (GDC)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+keywords = ["gdc", "tcga", "genomic-data-commons", "cancer-genomics", "bioinformatics"]
+dependencies = [
+    "requests>=2.28.0",
+    "pandas>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black==25.12.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+gdcfetch = "gdcfetch.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/alfaromurillo/gdcfetch"
+Repository = "https://github.com/alfaromurillo/gdcfetch"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "network: tests that hit external services (deselected by default)",
+]
+addopts = "-m 'not network'"
+
+[tool.black]
+line-length = 70
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 70
