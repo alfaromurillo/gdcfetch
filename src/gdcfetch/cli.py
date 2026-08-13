@@ -5,7 +5,9 @@ Subcommands:
 - ``browse PROJECT`` -- see what data categories/types/strategies exist
 - ``presets`` -- list the named query presets
 - ``search PROJECT [--preset NAME | --data-type ...]`` -- list matching files
-- ``download PROJECT [--preset NAME | --data-type ...] --dest DIR``
+- ``download PROJECT [--preset NAME | --data-type ...] --dest DIR
+  [--token-file FILE]`` -- ``--token-file`` is only needed for
+  controlled-access presets like ``structural-variants``
 - ``manifest PROJECT [--preset NAME | --data-type ...] -o FILE``
 - ``atac PROJECT --dest FILE`` -- the TCGA ATAC-seq tarball shortcut
 """
@@ -75,6 +77,13 @@ def build_parser() -> argparse.ArgumentParser:
     _add_project_arg(p)
     _add_filter_args(p)
     p.add_argument("--dest", required=True)
+    p.add_argument(
+        "--token-file",
+        help=(
+            "GDC token file (from the Data Portal) for "
+            "controlled-access downloads"
+        ),
+    )
 
     p = sub.add_parser("manifest", help="write a gdc-client manifest")
     _add_project_arg(p)
@@ -147,8 +156,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "download":
         from .client import download_files, search_files
 
+        session = None
+        if args.token_file:
+            from .auth import authenticated_session, load_token
+
+            session = authenticated_session(
+                load_token(args.token_file)
+            )
         hits = search_files(args.project, **_search_kwargs(args))
-        paths = download_files(hits, args.dest)
+        paths = download_files(hits, args.dest, session=session)
         print(f"Downloaded {len(paths)} files to {args.dest}")
         return 0
 

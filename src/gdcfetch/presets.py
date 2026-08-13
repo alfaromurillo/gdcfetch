@@ -120,10 +120,11 @@ PRESETS: dict[str, Preset] = {
         description="Manta / SvABA structural variant (SV) calls.",
         notes=(
             "CONTROLLED ACCESS -- unlike every other preset here, "
-            "this requires dbGaP authorization; `client.search_files` "
-            "with access='controlled' will list the files, but "
-            "`download_files` will fail with a 403 on the open GDC "
-            "API without an authorized token."
+            "this requires dbGaP authorization. `search_files` "
+            "lists these files with no auth needed; downloading "
+            "them needs a session carrying your GDC token -- see "
+            "`auth.authenticated_session` (pass it as `session=` "
+            "to `download_files`)."
         ),
     ),
     "gene-expression": Preset(

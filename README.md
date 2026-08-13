@@ -98,11 +98,30 @@ different, genuinely separate data:
 | SV | `structural-variants` | Structural Rearrangement | **controlled** |
 
 **Structural variants are the one case where `download_files` won't
-just work** — `Structural Rearrangement` calls (Manta/SvABA) are
-controlled-access on GDC, meaning you need a dbGaP data-access
-authorization and an authenticated download token; `search_files`
-will still list the files (so you can see what exists and plan
-around it), but a plain open-API download will get a 403.
+just work without extra setup** — `Structural Rearrangement` calls
+(Manta/SvABA) are controlled-access on GDC. `search_files` lists
+them with no authorization needed, but downloading the bytes
+requires a dbGaP data-access authorization and a GDC token:
+
+```bash
+# after getting dbGaP access and downloading your token from
+# https://portal.gdc.cancer.gov (user icon -> Download Token)
+gdcfetch download TCGA-BRCA --preset structural-variants \
+    --dest brca_sv/ --token-file gdc-user-token.txt
+```
+
+```python
+from gdcfetch import authenticated_session, download_files, load_token, search_files
+
+session = authenticated_session(load_token("gdc-user-token.txt"))
+hits = search_files("TCGA-BRCA", data_type="Structural Rearrangement",
+                    access="controlled")
+download_files(hits, "brca_sv/", session=session)
+```
+
+The token only proves to GDC that *you* have an approved dbGaP
+authorization — `gdcfetch` doesn't grant access to anything on its
+own.
 
 Run `gdcfetch presets` any time to see this table with descriptions
 kept next to the code (and re-verify a preset still matches reality
@@ -202,6 +221,7 @@ for programmatic use.
 | `write_manifest(hits, path)` | `gdc-client`-format manifest |
 | `write_sample_sheet(hits, path)` | GDC Data Portal-format sample sheet |
 | `tcga_atac_available(project)` / `download_tcga_atac(project, dest)` | The ATAC-seq shortcut above |
+| `load_token(path)` / `authenticated_session(token)` | Controlled-access downloads (see above) |
 
 All of `search_files`, `download_files`, `download_by_uuid`, and
 `get_data_size` accept an optional `session: requests.Session` for

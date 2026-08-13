@@ -31,3 +31,17 @@ def test_atac_command_unknown_project(capsys):
 def test_command_required():
     with pytest.raises(SystemExit):
         build_parser().parse_args([])
+
+
+def test_download_accepts_token_file():
+    args = build_parser().parse_args(
+        [
+            "download",
+            "TCGA-BRCA",
+            "--dest",
+            "/tmp/x",
+            "--token-file",
+            "/tmp/token.txt",
+        ]
+    )
+    assert args.token_file == "/tmp/token.txt"

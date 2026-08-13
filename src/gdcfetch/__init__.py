@@ -23,6 +23,7 @@ try:
 except Exception:  # noqa: BLE001 - version is informational only
     __version__ = "unknown"
 
+from .auth import authenticated_session, load_token
 from .browse import (
     describe_project,
     list_data_categories,
@@ -47,6 +48,8 @@ from .supplementary import (
 
 __all__ = [
     "__version__",
+    "authenticated_session",
+    "load_token",
     "build_filter",
     "search_files",
     "download_files",

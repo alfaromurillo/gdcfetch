@@ -14,6 +14,7 @@ pytest
 | Module | Role |
 |--------|------|
 | `client.py` | Core mechanics: search, download, retry, the ranged-GET size trick |
+| `auth.py` | GDC token handling for controlled-access downloads |
 | `browse.py` | Faceted discovery over `client.py`'s search endpoint |
 | `presets.py` | Named filters (`Preset` dataclass + `PRESETS` registry) |
 | `supplementary.py` | Fixed-UUID datasets not indexed in `/files` (currently: TCGA ATAC-seq) |
