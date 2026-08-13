@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `browse.list_projects(program=None)`: list all GDC projects (93
+  across ~27 programs — TCGA, TARGET, CPTAC, ALCHEMIST, ...), not
+  just data within one already-known project. `gdcfetch projects
+  [--program NAME]` on the CLI.
+
 ## [0.1.0] - 2026-08-13
 
 ### Added
@@ -15,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `browse`: faceted discovery (`list_data_categories`,
   `list_data_types`, `list_experimental_strategies`,
   `list_workflow_types`, `describe_project`).
+- `auth`: `load_token` / `authenticated_session` for
+  controlled-access downloads via GDC's `X-Auth-Token` mechanism
+  (dbGaP-authorized researchers only; search never needs a token).
 - `presets`: named filters for mutation-signature-relevant data
   (`somatic-mutations` covering SBS/DBS/ID, four copy-number
   variants, `structural-variants` flagged controlled-access) and

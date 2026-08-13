@@ -33,6 +33,18 @@ def test_command_required():
         build_parser().parse_args([])
 
 
+def test_projects_command_accepts_program_filter():
+    args = build_parser().parse_args(
+        ["projects", "--program", "TCGA"]
+    )
+    assert args.program == "TCGA"
+
+
+def test_projects_command_program_optional():
+    args = build_parser().parse_args(["projects"])
+    assert args.program is None
+
+
 def test_download_accepts_token_file():
     args = build_parser().parse_args(
         [

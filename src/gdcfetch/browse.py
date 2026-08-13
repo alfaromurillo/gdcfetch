@@ -1,12 +1,14 @@
-"""Explore what data exists for a project before committing to a query.
+"""Explore what data exists before committing to a query.
 
-GDC's controlled vocabulary (data types, categories, workflows) isn't
-obvious up front -- these functions answer "what's actually
-available for this project?" via the files endpoint's own faceted
-aggregation, so you don't have to already know the exact string
+GDC's controlled vocabulary (project codes, data types, categories,
+workflows) isn't obvious up front -- these functions answer "what's
+actually available?", either across all of GDC (`list_projects`) or
+within one project (the files endpoint's own faceted aggregation),
+so you don't have to already know the exact string "TCGA-BRCA" or
 "Masked Somatic Mutation" to find it.
 """
 
+import json
 import logging
 
 import requests
@@ -14,6 +16,59 @@ import requests
 from .client import GDC_API
 
 logger = logging.getLogger(__name__)
+
+_PROJECT_FIELDS = (
+    "project_id",
+    "name",
+    "primary_site",
+    "program.name",
+)
+
+
+def list_projects(
+    *,
+    program: str | None = None,
+    fields: tuple[str, ...] = _PROJECT_FIELDS,
+    page_size: int = 100,
+    session: requests.Session | None = None,
+    timeout: int = 60,
+) -> list[dict]:
+    """List every GDC project (93 as of 2026-08, across ~30 programs).
+
+    GDC hosts more than TCGA -- TARGET, CPTAC, MMRF, ALCHEMIST, and
+    others are all in the same `/projects` index. Pass ``program``
+    (e.g. ``"TCGA"``) to narrow the listing to one; leave it unset to
+    see everything. Results are sorted by ``project_id``.
+    """
+    session = session or requests.Session()
+    filters = None
+    if program is not None:
+        filters = {
+            "op": "in",
+            "content": {"field": "program.name", "value": [program]},
+        }
+    hits: list[dict] = []
+    start = 0
+    while True:
+        params = {
+            "fields": ",".join(fields),
+            "size": page_size,
+            "from": start,
+        }
+        if filters is not None:
+            params["filters"] = json.dumps(filters)
+        response = session.get(
+            f"{GDC_API}/projects", params=params, timeout=timeout
+        )
+        response.raise_for_status()
+        data = response.json()["data"]
+        hits.extend(data["hits"])
+        pagination = data["pagination"]
+        start += pagination["count"]
+        if start >= pagination["total"] or pagination["count"] == 0:
+            break
+    hits.sort(key=lambda h: h["project_id"])
+    return hits
 
 
 def _facets(

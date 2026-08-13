@@ -166,6 +166,23 @@ else:
     print("no ATAC-seq for this type")  # true for OV and 9 others
 ```
 
+## Finding a project
+
+GDC hosts more than TCGA — TARGET, CPTAC, MMRF, ALCHEMIST, and about
+two dozen other programs, 93 projects in total. If you don't already
+know the project code:
+
+```bash
+gdcfetch projects              # all 93
+gdcfetch projects --program TCGA   # just the 33 TCGA cancer types
+```
+
+```python
+from gdcfetch import list_projects
+
+tcga = list_projects(program="TCGA")
+```
+
 ## Exploring an unfamiliar project
 
 ```bash
@@ -198,6 +215,7 @@ for programmatic use.
 | Command | Purpose |
 |---|---|
 | `gdcfetch presets` | List named presets with descriptions |
+| `gdcfetch projects [--program NAME]` | List all GDC projects, optionally one program |
 | `gdcfetch browse PROJECT [--data-category ...]` | List available data categories/types/strategies |
 | `gdcfetch search PROJECT [--preset NAME \| --data-type ...]` | List matching files |
 | `gdcfetch download PROJECT [...] --dest DIR` | Download matching files |
@@ -216,7 +234,8 @@ for programmatic use.
 | `download_files(hits, dest)` | Parallel, resumable download of search results into `<dest>/<file_id>/<file_name>` |
 | `download_by_uuid(uuid, dest)` | Download any single `/data/<uuid>` blob directly |
 | `get_data_size(uuid)` | Byte size of a blob via a 1-byte ranged GET, without downloading it |
-| `describe_project(project)` / `list_data_types(project)` / ... | Faceted browsing |
+| `list_projects(program=None)` | List all GDC projects, or just one program |
+| `describe_project(project)` / `list_data_types(project)` / ... | Faceted browsing within a project |
 | `list_presets()` / `get_preset(name)` | Inspect the preset registry |
 | `write_manifest(hits, path)` | `gdc-client`-format manifest |
 | `write_sample_sheet(hits, path)` | GDC Data Portal-format sample sheet |

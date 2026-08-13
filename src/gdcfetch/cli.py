@@ -2,6 +2,8 @@
 
 Subcommands:
 
+- ``projects [--program NAME]`` -- list all GDC projects (TCGA,
+  TARGET, CPTAC, ...), optionally narrowed to one program
 - ``browse PROJECT`` -- see what data categories/types/strategies exist
 - ``presets`` -- list the named query presets
 - ``search PROJECT [--preset NAME | --data-type ...]`` -- list matching files
@@ -58,6 +60,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    p = sub.add_parser("projects", help="list all GDC projects")
+    p.add_argument(
+        "--program", help="narrow to one program, e.g. TCGA"
+    )
+
     p = sub.add_parser(
         "browse", help="see what's available for a project"
     )
@@ -108,6 +115,17 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
+
+    if args.command == "projects":
+        from .browse import list_projects
+
+        for hit in list_projects(program=args.program):
+            sites = "; ".join(hit.get("primary_site") or [])
+            program = hit.get("program", {}).get("name", "")
+            print(
+                f"{hit['project_id']}\t{program}\t{hit['name']}\t{sites}"
+            )
+        return 0
 
     if args.command == "browse":
         from .browse import describe_project, list_data_types

@@ -5,9 +5,9 @@ Three layers:
 - `client`: general-purpose search/download against any GDC project
   and file type (`search_files`, `download_files`,
   `download_by_uuid`, `get_data_size`).
-- `browse`: answer "what's available for this project?" before
-  writing a filtered query (`list_data_types`, `describe_project`,
-  ...).
+- `browse`: answer "what's available?" before writing a filtered
+  query -- `list_projects` across all of GDC, or `list_data_types` /
+  `describe_project` / ... within one project.
 - `presets`: named, ready-to-use filters for the file types cancer
   researchers actually reach for -- somatic mutations (SBS/DBS/ID),
   copy number (CN), structural variants (SV), and gene expression.
@@ -29,6 +29,7 @@ from .browse import (
     list_data_categories,
     list_data_types,
     list_experimental_strategies,
+    list_projects,
     list_workflow_types,
 )
 from .client import (
@@ -56,6 +57,7 @@ __all__ = [
     "download_by_uuid",
     "get_data_size",
     "describe_project",
+    "list_projects",
     "list_data_categories",
     "list_data_types",
     "list_experimental_strategies",

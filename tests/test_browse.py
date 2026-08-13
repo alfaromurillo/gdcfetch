@@ -1,9 +1,12 @@
 """Browse/facet tests (mocked HTTP)."""
 
+import json
+
 from gdcfetch.browse import (
     describe_project,
     list_data_categories,
     list_data_types,
+    list_projects,
     list_workflow_types,
 )
 
@@ -105,3 +108,72 @@ def test_describe_project_bundles_three_facets():
         "experimental_strategies",
     }
     assert len(session.calls) == 3
+
+
+TCGA_BRCA = {
+    "project_id": "TCGA-BRCA",
+    "name": "Breast Invasive Carcinoma",
+    "primary_site": ["Breast"],
+    "program": {"name": "TCGA"},
+}
+ALCHEMIST = {
+    "project_id": "ALCHEMIST-ALCH",
+    "name": "Adjuvant Lung Cancer Enrichment Marker "
+    "Identification and Sequencing Trial",
+    "primary_site": ["Not Reported"],
+    "program": {"name": "ALCHEMIST"},
+}
+
+
+class _ProjectsResponse:
+    def __init__(self, hits, total):
+        self._hits = hits
+        self._total = total
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return {
+            "data": {
+                "hits": self._hits,
+                "pagination": {
+                    "count": len(self._hits),
+                    "total": self._total,
+                },
+            }
+        }
+
+
+class _ProjectsSession:
+    def __init__(self, pages):
+        self.pages = pages
+        self.calls = []
+
+    def get(self, url, params=None, timeout=None):
+        self.calls.append(params)
+        page = self.pages[len(self.calls) - 1]
+        return _ProjectsResponse(
+            page, sum(len(p) for p in self.pages)
+        )
+
+
+def test_list_projects_paginates_and_sorts():
+    session = _ProjectsSession([[ALCHEMIST], [TCGA_BRCA]])
+    got = list_projects(session=session, page_size=1)
+    assert len(session.calls) == 2
+    assert [p["project_id"] for p in got] == [
+        "ALCHEMIST-ALCH",
+        "TCGA-BRCA",
+    ]  # sorted
+    assert "filters" not in session.calls[0]
+
+
+def test_list_projects_filters_by_program():
+    session = _ProjectsSession([[TCGA_BRCA]])
+    list_projects(program="TCGA", session=session)
+    sent = json.loads(session.calls[0]["filters"])
+    assert sent == {
+        "op": "in",
+        "content": {"field": "program.name", "value": ["TCGA"]},
+    }

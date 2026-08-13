@@ -15,7 +15,7 @@ pytest
 |--------|------|
 | `client.py` | Core mechanics: search, download, retry, the ranged-GET size trick |
 | `auth.py` | GDC token handling for controlled-access downloads |
-| `browse.py` | Faceted discovery over `client.py`'s search endpoint |
+| `browse.py` | Project listing (`/projects`) + faceted discovery over `client.py`'s search endpoint |
 | `presets.py` | Named filters (`Preset` dataclass + `PRESETS` registry) |
 | `supplementary.py` | Fixed-UUID datasets not indexed in `/files` (currently: TCGA ATAC-seq) |
 | `manifest.py` | `gdc-client` manifest and GDC sample-sheet writers |
