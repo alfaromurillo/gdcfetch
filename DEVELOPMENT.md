@@ -19,6 +19,7 @@ pytest
 | `presets.py` | Named filters (`Preset` dataclass + `PRESETS` registry) |
 | `supplementary.py` | Fixed-UUID datasets not indexed in `/files` (currently: TCGA ATAC-seq) |
 | `manifest.py` | `gdc-client` manifest and GDC sample-sheet writers |
+| `tcga_barcode.py` | TCGA barcode parsing (`parse_tcga_barcode`, `SAMPLE_TYPE_CODES`) + per-case GDC clinical lookups (`fetch_case_metadata`: collection day, prior-treatment status) |
 | `cli.py` | The `gdcfetch` console command |
 
 ## Two kinds of GDC UUID
